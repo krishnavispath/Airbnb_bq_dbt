@@ -1,0 +1,1931 @@
+{
+  "metadata": {
+    "colibri_version": "0.3.0",
+    "generated_at": "2026-04-30T06:29:30Z",
+    "adapter_type": "bigquery",
+    "dbt_version": "1.11.6",
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+    "dbt_invocation_id": "949d5338-dd34-4348-926c-e6639e394952",
+    "dbt_project_name": "Airbnb_bq_proj",
+    "dbt_project_id": "6232ac293869592c",
+    "total_model_count": 8,
+    "unmaterialized_model_count": 3
+  },
+  "nodes": {
+    "model.Airbnb_bq_proj.dim_hosts_cleansed": {
+      "id": "model.Airbnb_bq_proj.dim_hosts_cleansed",
+      "name": "dim_hosts_cleansed",
+      "fullName": "model.Airbnb_bq_proj.dim_hosts_cleansed",
+      "nodeType": "model",
+      "materialized": "view",
+      "modelType": "dimension",
+      "database": "mysampleproject-491106",
+      "schema": "dbt_airbnb",
+      "path": "models\\dim\\dim_hosts_cleansed.sql",
+      "description": "Cleansed dimension table for Airbnb hosts",
+      "contractEnforced": true,
+      "rawCode": "{{ config(\n    materialized='view'\n) }}\n\nwith src_hosts as(\n    select * from {{ ref('src_hosts') }}\n)\nselect\n    host_id,\n    ifnull(host_name, 'Anonymous') as host_name,\n    is_superhost,\n    created_at,\n    updated_at\nfrom src_hosts",
+      "compiledCode": "\n\nwith  __dbt__cte__src_hosts as (\nwith raw_hosts as (\n    select * from `mysampleproject-491106`.`dbt_raw`.`raw_hosts`\n)\nselect\n    id as host_id,\n    name as host_name,\n    is_superhost,\n    created_at,\n    updated_at\nfrom raw_hosts\n), src_hosts as(\n    select * from __dbt__cte__src_hosts\n)\nselect\n    host_id,\n    ifnull(host_name, 'Anonymous') as host_name,\n    is_superhost,\n    created_at,\n    updated_at\nfrom src_hosts",
+      "refs": [
+        {
+          "name": "src_hosts",
+          "package": null,
+          "version": null
+        }
+      ],
+      "tags": [],
+      "columns": {
+        "host_id": {
+          "columnName": "host_id",
+          "hasLineage": true,
+          "dataType": "INT64",
+          "contractType": "integer",
+          "description": "Primary key for each host",
+          "lineageType": "transformation"
+        },
+        "host_name": {
+          "columnName": "host_name",
+          "hasLineage": true,
+          "dataType": "STRING",
+          "contractType": "string",
+          "description": "Name of the host",
+          "lineageType": "transformation"
+        },
+        "is_superhost": {
+          "columnName": "is_superhost",
+          "hasLineage": true,
+          "dataType": "BOOL",
+          "contractType": "boolean",
+          "description": "Indicates if the host is a superhost",
+          "lineageType": "transformation"
+        },
+        "created_at": {
+          "columnName": "created_at",
+          "hasLineage": true,
+          "dataType": "TIMESTAMP",
+          "contractType": "timestamp",
+          "description": "Timestamp when the host record was created",
+          "lineageType": "transformation"
+        },
+        "updated_at": {
+          "columnName": "updated_at",
+          "hasLineage": true,
+          "dataType": "TIMESTAMP",
+          "contractType": "timestamp",
+          "description": "Timestamp when the host record was last updated",
+          "lineageType": "transformation"
+        }
+      },
+      "relationName": "`mysampleproject-491106`.`dbt_airbnb`.`dim_hosts_cleansed`"
+    },
+    "source.Airbnb_bq_proj.airbnb.hosts": {
+      "id": "source.Airbnb_bq_proj.airbnb.hosts",
+      "name": "hosts",
+      "fullName": "source.Airbnb_bq_proj.airbnb.hosts",
+      "nodeType": "source",
+      "materialized": "unknown",
+      "modelType": "unknown",
+      "database": "mysampleproject-491106",
+      "schema": "dbt_raw",
+      "path": "models\\sources.yml",
+      "description": "",
+      "contractEnforced": null,
+      "rawCode": null,
+      "compiledCode": null,
+      "refs": [],
+      "tags": [],
+      "columns": {
+        "id": {
+          "columnName": "id",
+          "hasLineage": true,
+          "dataType": "INT64"
+        },
+        "name": {
+          "columnName": "name",
+          "hasLineage": true,
+          "dataType": "STRING"
+        },
+        "is_superhost": {
+          "columnName": "is_superhost",
+          "hasLineage": true,
+          "dataType": "BOOL"
+        },
+        "created_at": {
+          "columnName": "created_at",
+          "hasLineage": true,
+          "dataType": "TIMESTAMP"
+        },
+        "updated_at": {
+          "columnName": "updated_at",
+          "hasLineage": true,
+          "dataType": "TIMESTAMP"
+        }
+      },
+      "relationName": "`mysampleproject-491106`.`dbt_raw`.`raw_hosts`"
+    },
+    "model.Airbnb_bq_proj.dim_listings_w_hosts": {
+      "id": "model.Airbnb_bq_proj.dim_listings_w_hosts",
+      "name": "dim_listings_w_hosts",
+      "fullName": "model.Airbnb_bq_proj.dim_listings_w_hosts",
+      "nodeType": "model",
+      "materialized": "table",
+      "modelType": "dimension",
+      "database": "mysampleproject-491106",
+      "schema": "dbt_airbnb",
+      "path": "models\\dim\\dim_listings_w_hosts.sql",
+      "description": "",
+      "contractEnforced": false,
+      "rawCode": "with\nl as (\n    select * from {{ ref('dim_listings_cleansed') }}\n),\nh as (\n    select * from {{ ref('dim_hosts_cleansed') }}\n)\n\nselect\n    l.listing_id,\n    l.listing_name,\n    l.room_type,\n    l.minimum_nights,\n    l.price,\n    l.host_id,\n    h.host_name,\n    h.is_superhost as host_is_superhost,\n    l.created_at,\n    greatest(l.updated_at, h.updated_at) as updated_at\nfrom l\nleft join h on l.host_id = h.host_id",
+      "compiledCode": "with\nl as (\n    select * from `mysampleproject-491106`.`dbt_airbnb`.`dim_listings_cleansed`\n),\nh as (\n    select * from `mysampleproject-491106`.`dbt_airbnb`.`dim_hosts_cleansed`\n)\n\nselect\n    l.listing_id,\n    l.listing_name,\n    l.room_type,\n    l.minimum_nights,\n    l.price,\n    l.host_id,\n    h.host_name,\n    h.is_superhost as host_is_superhost,\n    l.created_at,\n    greatest(l.updated_at, h.updated_at) as updated_at\nfrom l\nleft join h on l.host_id = h.host_id",
+      "refs": [
+        {
+          "name": "dim_listings_cleansed",
+          "package": null,
+          "version": null
+        },
+        {
+          "name": "dim_hosts_cleansed",
+          "package": null,
+          "version": null
+        }
+      ],
+      "tags": [],
+      "columns": {
+        "listing_id": {
+          "columnName": "listing_id",
+          "hasLineage": true,
+          "dataType": "INT64",
+          "lineageType": "pass-through"
+        },
+        "listing_name": {
+          "columnName": "listing_name",
+          "hasLineage": true,
+          "dataType": "STRING",
+          "lineageType": "pass-through"
+        },
+        "room_type": {
+          "columnName": "room_type",
+          "hasLineage": true,
+          "dataType": "STRING",
+          "lineageType": "pass-through"
+        },
+        "minimum_nights": {
+          "columnName": "minimum_nights",
+          "hasLineage": true,
+          "dataType": "INT64",
+          "lineageType": "pass-through"
+        },
+        "price": {
+          "columnName": "price",
+          "hasLineage": true,
+          "dataType": "INT64",
+          "lineageType": "pass-through"
+        },
+        "host_id": {
+          "columnName": "host_id",
+          "hasLineage": true,
+          "dataType": "INT64",
+          "lineageType": "pass-through"
+        },
+        "host_name": {
+          "columnName": "host_name",
+          "hasLineage": true,
+          "dataType": "STRING",
+          "lineageType": "pass-through"
+        },
+        "host_is_superhost": {
+          "columnName": "host_is_superhost",
+          "hasLineage": true,
+          "dataType": "BOOL",
+          "lineageType": "rename"
+        },
+        "created_at": {
+          "columnName": "created_at",
+          "hasLineage": true,
+          "dataType": "TIMESTAMP",
+          "lineageType": "pass-through"
+        },
+        "updated_at": {
+          "columnName": "updated_at",
+          "hasLineage": true,
+          "dataType": "TIMESTAMP",
+          "lineageType": "transformation"
+        }
+      },
+      "relationName": "`mysampleproject-491106`.`dbt_airbnb`.`dim_listings_w_hosts`"
+    },
+    "model.Airbnb_bq_proj.dim_listings_cleansed": {
+      "id": "model.Airbnb_bq_proj.dim_listings_cleansed",
+      "name": "dim_listings_cleansed",
+      "fullName": "model.Airbnb_bq_proj.dim_listings_cleansed",
+      "nodeType": "model",
+      "materialized": "table",
+      "modelType": "dimension",
+      "database": "mysampleproject-491106",
+      "schema": "dbt_airbnb",
+      "path": "models\\dim\\dim_listings_cleansed.sql",
+      "description": "Cleansed dimension table for Airbnb listings",
+      "contractEnforced": false,
+      "rawCode": "with src_listings as(\n    select * from {{ ref('src_listings') }}\n)\nselect\n    listing_id,\n    listing_name,\n    room_type,\n    case\n        when minimum_nights = 0 then 1\n        else minimum_nights\n    end as minimum_nights,\n    host_id,\n    price,\n    created_at,\n    updated_at\nfrom src_listings",
+      "compiledCode": "with  __dbt__cte__src_listings as (\nwith raw_listings as (\n    select * from `mysampleproject-491106`.`dbt_raw`.`raw_listings`\n)\nselect\n    id as listing_id,\n    name as listing_name,\n    listing_url,\n    room_type,\n    minimum_nights,\n    host_id,\n    price,\n    created_at,\n    updated_at\nfrom raw_listings\n), src_listings as(\n    select * from __dbt__cte__src_listings\n)\nselect\n    listing_id,\n    listing_name,\n    room_type,\n    case\n        when minimum_nights = 0 then 1\n        else minimum_nights\n    end as minimum_nights,\n    host_id,\n    price,\n    created_at,\n    updated_at\nfrom src_listings",
+      "refs": [
+        {
+          "name": "src_listings",
+          "package": null,
+          "version": null
+        }
+      ],
+      "tags": [],
+      "columns": {
+        "listing_id": {
+          "columnName": "listing_id",
+          "hasLineage": true,
+          "dataType": "INT64",
+          "description": "Primary key for each listing",
+          "tests": [
+            {
+              "unique_id": "test.Airbnb_bq_proj.not_null_dim_listings_cleansed_listing_id.2da437bec9",
+              "name": "not_null",
+              "namespace": null,
+              "config": {
+                "severity": "ERROR",
+                "warn_if": "!= 0",
+                "error_if": "!= 0"
+              },
+              "kwargs": {
+                "column_name": "listing_id",
+                "model": "{{ get_where_subquery(ref('dim_listings_cleansed')) }}"
+              },
+              "compiled_code": "\n    \n    \n\n\n\nselect *\nfrom `mysampleproject-491106`.`dbt_airbnb`.`dim_listings_cleansed`\nwhere listing_id is null\n\n\n"
+            },
+            {
+              "unique_id": "test.Airbnb_bq_proj.unique_dim_listings_cleansed_listing_id.930e4e859e",
+              "name": "unique",
+              "namespace": null,
+              "config": {
+                "severity": "ERROR",
+                "warn_if": "!= 0",
+                "error_if": "!= 0"
+              },
+              "kwargs": {
+                "column_name": "listing_id",
+                "model": "{{ get_where_subquery(ref('dim_listings_cleansed')) }}"
+              },
+              "compiled_code": "\n    \n    \n\nwith dbt_test__target as (\n\n  select listing_id as unique_field\n  from `mysampleproject-491106`.`dbt_airbnb`.`dim_listings_cleansed`\n  where listing_id is not null\n\n)\n\nselect\n    unique_field,\n    count(*) as n_records\n\nfrom dbt_test__target\ngroup by unique_field\nhaving count(*) > 1\n\n\n"
+            }
+          ],
+          "lineageType": "transformation"
+        },
+        "listing_name": {
+          "columnName": "listing_name",
+          "hasLineage": true,
+          "dataType": "STRING",
+          "lineageType": "transformation"
+        },
+        "room_type": {
+          "columnName": "room_type",
+          "hasLineage": true,
+          "dataType": "STRING",
+          "description": "Type of room offered in the listing",
+          "tests": [
+            {
+              "unique_id": "test.Airbnb_bq_proj.accepted_values_dim_listings_cleansed_room_type__Entire_home_apt__Private_room__Shared_room__Hotel_room.a95127e3af",
+              "name": "accepted_values",
+              "namespace": null,
+              "config": {
+                "severity": "ERROR",
+                "warn_if": "!= 0",
+                "error_if": "!= 0"
+              },
+              "kwargs": {
+                "column_name": "room_type",
+                "values": [
+                  "Entire home/apt",
+                  "Private room",
+                  "Shared room",
+                  "Hotel room"
+                ],
+                "model": "{{ get_where_subquery(ref('dim_listings_cleansed')) }}"
+              },
+              "compiled_code": "\n    \n    \n\nwith all_values as (\n\n    select\n        room_type as value_field,\n        count(*) as n_records\n\n    from `mysampleproject-491106`.`dbt_airbnb`.`dim_listings_cleansed`\n    group by room_type\n\n)\n\nselect *\nfrom all_values\nwhere value_field not in (\n    'Entire home/apt','Private room','Shared room','Hotel room'\n)\n\n\n"
+            }
+          ],
+          "lineageType": "transformation"
+        },
+        "minimum_nights": {
+          "columnName": "minimum_nights",
+          "hasLineage": true,
+          "dataType": "INT64",
+          "description": "Minimum number of nights required to rent this property.\r\n\r\nKeep in mind that old listings might have 'minimum_nights' set\r\nto 0 in the source tables. Our cleansing algorithm updates this to '1'.",
+          "tests": [
+            {
+              "unique_id": "test.Airbnb_bq_proj.positive_values_dim_listings_cleansed_minimum_nights.5dac2ba3aa",
+              "name": "positive_values",
+              "namespace": null,
+              "config": {
+                "severity": "ERROR",
+                "warn_if": "!= 0",
+                "error_if": "!= 0"
+              },
+              "kwargs": {
+                "column_name": "minimum_nights",
+                "model": "{{ get_where_subquery(ref('dim_listings_cleansed')) }}"
+              },
+              "compiled_code": "\nselect * from `mysampleproject-491106`.`dbt_airbnb`.`dim_listings_cleansed`\nwhere minimum_nights <= 0\n"
+            }
+          ],
+          "lineageType": "transformation"
+        },
+        "host_id": {
+          "columnName": "host_id",
+          "hasLineage": true,
+          "dataType": "INT64",
+          "description": "Foreign key referencing the host table",
+          "tests": [
+            {
+              "unique_id": "test.Airbnb_bq_proj.not_null_dim_listings_cleansed_host_id.084e4105be",
+              "name": "not_null",
+              "namespace": null,
+              "config": {
+                "severity": "ERROR",
+                "warn_if": "!= 0",
+                "error_if": "!= 0"
+              },
+              "kwargs": {
+                "column_name": "host_id",
+                "model": "{{ get_where_subquery(ref('dim_listings_cleansed')) }}"
+              },
+              "compiled_code": "\n    \n    \n\n\n\nselect *\nfrom `mysampleproject-491106`.`dbt_airbnb`.`dim_listings_cleansed`\nwhere host_id is null\n\n\n"
+            },
+            {
+              "unique_id": "test.Airbnb_bq_proj.dbt_utils_relationships_where_dim_listings_cleansed_host_id__host_id__ref_dim_hosts_cleansed_.aa1bd071a3",
+              "name": "relationships_where",
+              "namespace": "dbt_utils",
+              "config": {
+                "severity": "ERROR",
+                "warn_if": "!= 0",
+                "error_if": "!= 0"
+              },
+              "kwargs": {
+                "column_name": "host_id",
+                "to": "ref('dim_hosts_cleansed')",
+                "field": "host_id",
+                "model": "{{ get_where_subquery(ref('dim_listings_cleansed')) }}"
+              },
+              "compiled_code": "\n\n\n\n\nwith left_table as (\n\n  select\n    host_id as id\n\n  from `mysampleproject-491106`.`dbt_airbnb`.`dim_listings_cleansed`\n\n  where host_id is not null\n    and 1=1\n\n),\n\nright_table as (\n\n  select\n    host_id as id\n\n  from `mysampleproject-491106`.`dbt_airbnb`.`dim_hosts_cleansed`\n\n  where host_id is not null\n    and 1=1\n\n),\n\nexceptions as (\n\n  select\n    left_table.id,\n    right_table.id as right_id\n\n  from left_table\n\n  left join right_table\n         on left_table.id = right_table.id\n\n  where right_table.id is null\n\n)\n\nselect * from exceptions\n\n",
+              "depends_on_nodes": [
+                "model.Airbnb_bq_proj.dim_hosts_cleansed"
+              ]
+            }
+          ],
+          "lineageType": "transformation"
+        },
+        "price": {
+          "columnName": "price",
+          "hasLineage": true,
+          "dataType": "INT64",
+          "lineageType": "transformation"
+        },
+        "created_at": {
+          "columnName": "created_at",
+          "hasLineage": true,
+          "dataType": "TIMESTAMP",
+          "lineageType": "transformation"
+        },
+        "updated_at": {
+          "columnName": "updated_at",
+          "hasLineage": true,
+          "dataType": "TIMESTAMP",
+          "lineageType": "transformation"
+        }
+      },
+      "relationName": "`mysampleproject-491106`.`dbt_airbnb`.`dim_listings_cleansed`",
+      "tests": [
+        {
+          "unique_id": "test.Airbnb_bq_proj.minimum_row_count_dim_listings_cleansed_1000.b80928cabe",
+          "name": "minimum_row_count",
+          "namespace": null,
+          "config": {
+            "severity": "error",
+            "warn_if": "!= 0",
+            "error_if": "!= 0"
+          },
+          "kwargs": {
+            "min_rows": 1000,
+            "model": "{{ get_where_subquery(ref('dim_listings_cleansed')) }}"
+          },
+          "compiled_code": "\n\n select count(*) as row_count\n from `mysampleproject-491106`.`dbt_airbnb`.`dim_listings_cleansed`\n having count(*) < 1000\n"
+        }
+      ]
+    },
+    "model.Airbnb_bq_proj.fct_reviews": {
+      "id": "model.Airbnb_bq_proj.fct_reviews",
+      "name": "fct_reviews",
+      "fullName": "model.Airbnb_bq_proj.fct_reviews",
+      "nodeType": "model",
+      "materialized": "incremental",
+      "modelType": "unknown",
+      "database": "mysampleproject-491106",
+      "schema": "dbt_airbnb",
+      "path": "models\\fct\\fct_reviews.sql",
+      "description": "",
+      "contractEnforced": false,
+      "rawCode": "{{\n    config(\n        materialized='incremental',\n        on_schema_change='fail'\n    )\n}}\n\nwith src_reviews as(\n    select * from {{ ref('src_reviews') }}\n)\n\nselect\n{{ dbt_utils.generate_surrogate_key(['listing_id', 'review_date', 'reviewer_name', 'review_comments']) }}\nas review_id,\n* from src_reviews\nwhere review_comments is not null\n\n{% if is_incremental() %}\n    AND review_date > (select max(review_date) from {{ this }})\n{% endif %}",
+      "compiledCode": "\n\nwith  __dbt__cte__src_reviews as (\nwith raw_reviews as(\n    select * from `mysampleproject-491106`.`dbt_raw`.`raw_reviews`\n)\nselect\n    listing_id,\n    date as review_date,\n    reviewer_name,\n    comments as review_comments,\n    sentiment as review_sentiment\nfrom raw_reviews\n), src_reviews as(\n    select * from __dbt__cte__src_reviews\n)\n\nselect\nto_hex(md5(cast(coalesce(cast(listing_id as string), '_dbt_utils_surrogate_key_null_') || '-' || coalesce(cast(review_date as string), '_dbt_utils_surrogate_key_null_') || '-' || coalesce(cast(reviewer_name as string), '_dbt_utils_surrogate_key_null_') || '-' || coalesce(cast(review_comments as string), '_dbt_utils_surrogate_key_null_') as string)))\nas review_id,\n* from src_reviews\nwhere review_comments is not null\n\n\n    AND review_date > (select max(review_date) from `mysampleproject-491106`.`dbt_airbnb`.`fct_reviews`)\n",
+      "refs": [
+        {
+          "name": "src_reviews",
+          "package": null,
+          "version": null
+        }
+      ],
+      "tags": [],
+      "columns": {
+        "review_id": {
+          "columnName": "review_id",
+          "hasLineage": true,
+          "dataType": "STRING",
+          "lineageType": "transformation"
+        },
+        "listing_id": {
+          "columnName": "listing_id",
+          "hasLineage": true,
+          "dataType": "INT64",
+          "lineageType": "transformation"
+        },
+        "review_date": {
+          "columnName": "review_date",
+          "hasLineage": true,
+          "dataType": "TIMESTAMP",
+          "lineageType": "transformation"
+        },
+        "reviewer_name": {
+          "columnName": "reviewer_name",
+          "hasLineage": true,
+          "dataType": "STRING",
+          "lineageType": "transformation"
+        },
+        "review_comments": {
+          "columnName": "review_comments",
+          "hasLineage": true,
+          "dataType": "STRING",
+          "lineageType": "transformation"
+        },
+        "review_sentiment": {
+          "columnName": "review_sentiment",
+          "hasLineage": true,
+          "dataType": "STRING",
+          "lineageType": "transformation"
+        }
+      },
+      "relationName": "`mysampleproject-491106`.`dbt_airbnb`.`fct_reviews`"
+    },
+    "source.Airbnb_bq_proj.airbnb.reviews": {
+      "id": "source.Airbnb_bq_proj.airbnb.reviews",
+      "name": "reviews",
+      "fullName": "source.Airbnb_bq_proj.airbnb.reviews",
+      "nodeType": "source",
+      "materialized": "unknown",
+      "modelType": "unknown",
+      "database": "mysampleproject-491106",
+      "schema": "dbt_raw",
+      "path": "models\\sources.yml",
+      "description": "",
+      "contractEnforced": null,
+      "rawCode": null,
+      "compiledCode": null,
+      "refs": [],
+      "tags": [],
+      "columns": {
+        "listing_id": {
+          "columnName": "listing_id",
+          "hasLineage": false,
+          "dataType": "INT64"
+        },
+        "date": {
+          "columnName": "date",
+          "hasLineage": false,
+          "dataType": "TIMESTAMP"
+        },
+        "reviewer_name": {
+          "columnName": "reviewer_name",
+          "hasLineage": false,
+          "dataType": "STRING"
+        },
+        "comments": {
+          "columnName": "comments",
+          "hasLineage": false,
+          "dataType": "STRING"
+        },
+        "sentiment": {
+          "columnName": "sentiment",
+          "hasLineage": false,
+          "dataType": "STRING"
+        }
+      },
+      "relationName": "`mysampleproject-491106`.`dbt_raw`.`raw_reviews`"
+    },
+    "model.Airbnb_bq_proj.mart_fullmoon_reviews": {
+      "id": "model.Airbnb_bq_proj.mart_fullmoon_reviews",
+      "name": "mart_fullmoon_reviews",
+      "fullName": "model.Airbnb_bq_proj.mart_fullmoon_reviews",
+      "nodeType": "model",
+      "materialized": "table",
+      "modelType": "unknown",
+      "database": "mysampleproject-491106",
+      "schema": "dbt_airbnb",
+      "path": "models\\mart\\mart_fullmoon_reviews.sql",
+      "description": "",
+      "contractEnforced": false,
+      "rawCode": "{{ config(materialized='table') }}\n\nwith fct_reviews as (\n    select\n        *\n    from {{ ref('fct_reviews') }}\n),\nfull_moon_dates as (\n    select\n        *\n    from {{ ref('seed_full_moon_dates') }}\n)\n\nselect\nr.*,\ncase\n    when d.full_moon_date is null then 'not full moon'\n    else 'full moon'\nend as is_full_moon\nfrom fct_reviews r left join full_moon_dates d\n    on cast(r.review_date as date) = date_add(d.full_moon_date, interval 1 day)",
+      "compiledCode": "\n\nwith fct_reviews as (\n    select\n        *\n    from `mysampleproject-491106`.`dbt_airbnb`.`fct_reviews`\n),\nfull_moon_dates as (\n    select\n        *\n    from `mysampleproject-491106`.`dbt_airbnb`.`seed_full_moon_dates`\n)\n\nselect\nr.*,\ncase\n    when d.full_moon_date is null then 'not full moon'\n    else 'full moon'\nend as is_full_moon\nfrom fct_reviews r left join full_moon_dates d\n    on cast(r.review_date as date) = date_add(d.full_moon_date, interval 1 day)",
+      "refs": [
+        {
+          "name": "fct_reviews",
+          "package": null,
+          "version": null
+        },
+        {
+          "name": "seed_full_moon_dates",
+          "package": null,
+          "version": null
+        }
+      ],
+      "tags": [],
+      "columns": {
+        "listing_id": {
+          "columnName": "listing_id",
+          "hasLineage": true,
+          "dataType": "INT64",
+          "lineageType": "pass-through"
+        },
+        "review_date": {
+          "columnName": "review_date",
+          "hasLineage": true,
+          "dataType": "TIMESTAMP",
+          "lineageType": "pass-through"
+        },
+        "reviewer_name": {
+          "columnName": "reviewer_name",
+          "hasLineage": true,
+          "dataType": "STRING",
+          "lineageType": "pass-through"
+        },
+        "review_comments": {
+          "columnName": "review_comments",
+          "hasLineage": true,
+          "dataType": "STRING",
+          "lineageType": "pass-through"
+        },
+        "review_sentiment": {
+          "columnName": "review_sentiment",
+          "hasLineage": true,
+          "dataType": "STRING",
+          "lineageType": "pass-through"
+        },
+        "is_full_moon": {
+          "columnName": "is_full_moon",
+          "hasLineage": true,
+          "dataType": "STRING",
+          "lineageType": "transformation"
+        }
+      },
+      "relationName": "`mysampleproject-491106`.`dbt_airbnb`.`mart_fullmoon_reviews`"
+    },
+    "seed.Airbnb_bq_proj.seed_full_moon_dates": {
+      "id": "seed.Airbnb_bq_proj.seed_full_moon_dates",
+      "name": "seed_full_moon_dates",
+      "fullName": "seed.Airbnb_bq_proj.seed_full_moon_dates",
+      "nodeType": "seed",
+      "materialized": "seed",
+      "modelType": "unknown",
+      "database": "mysampleproject-491106",
+      "schema": "dbt_airbnb",
+      "path": "seeds\\seed_full_moon_dates.csv",
+      "description": "",
+      "contractEnforced": false,
+      "rawCode": null,
+      "compiledCode": null,
+      "refs": [],
+      "tags": [],
+      "columns": {
+        "full_moon_date": {
+          "columnName": "full_moon_date",
+          "hasLineage": true,
+          "dataType": "DATE"
+        }
+      },
+      "relationName": "`mysampleproject-491106`.`dbt_airbnb`.`seed_full_moon_dates`"
+    },
+    "snapshot.Airbnb_bq_proj.scd_raw_hosts": {
+      "id": "snapshot.Airbnb_bq_proj.scd_raw_hosts",
+      "name": "scd_raw_hosts",
+      "fullName": "snapshot.Airbnb_bq_proj.scd_raw_hosts",
+      "nodeType": "snapshot",
+      "materialized": "snapshot",
+      "modelType": "unknown",
+      "database": "mysampleproject-491106",
+      "schema": "dbt_airbnb",
+      "path": "snapshots\\raw_hosts_snapshot.yml",
+      "description": "",
+      "contractEnforced": false,
+      "rawCode": "select * from {{ source('airbnb', 'hosts') }}",
+      "compiledCode": "select * from `mysampleproject-491106`.`dbt_raw`.`raw_hosts`",
+      "refs": [],
+      "tags": [],
+      "columns": {
+        "id": {
+          "columnName": "id",
+          "hasLineage": true,
+          "dataType": "INT64",
+          "lineageType": "pass-through"
+        },
+        "name": {
+          "columnName": "name",
+          "hasLineage": true,
+          "dataType": "STRING",
+          "lineageType": "pass-through"
+        },
+        "is_superhost": {
+          "columnName": "is_superhost",
+          "hasLineage": true,
+          "dataType": "BOOL",
+          "lineageType": "pass-through"
+        },
+        "created_at": {
+          "columnName": "created_at",
+          "hasLineage": true,
+          "dataType": "TIMESTAMP",
+          "lineageType": "pass-through"
+        },
+        "updated_at": {
+          "columnName": "updated_at",
+          "hasLineage": true,
+          "dataType": "TIMESTAMP",
+          "lineageType": "pass-through"
+        },
+        "dbt_scd_id": {
+          "columnName": "dbt_scd_id",
+          "hasLineage": false,
+          "dataType": "STRING",
+          "lineageType": "unknown"
+        },
+        "dbt_updated_at": {
+          "columnName": "dbt_updated_at",
+          "hasLineage": false,
+          "dataType": "TIMESTAMP",
+          "lineageType": "unknown"
+        },
+        "dbt_valid_from": {
+          "columnName": "dbt_valid_from",
+          "hasLineage": false,
+          "dataType": "TIMESTAMP",
+          "lineageType": "unknown"
+        },
+        "dbt_valid_to": {
+          "columnName": "dbt_valid_to",
+          "hasLineage": false,
+          "dataType": "TIMESTAMP",
+          "lineageType": "unknown"
+        }
+      },
+      "relationName": "`mysampleproject-491106`.`dbt_airbnb`.`scd_raw_hosts`"
+    },
+    "source.Airbnb_bq_proj.airbnb.listings": {
+      "id": "source.Airbnb_bq_proj.airbnb.listings",
+      "name": "listings",
+      "fullName": "source.Airbnb_bq_proj.airbnb.listings",
+      "nodeType": "source",
+      "materialized": "unknown",
+      "modelType": "unknown",
+      "database": "mysampleproject-491106",
+      "schema": "dbt_raw",
+      "path": "models\\sources.yml",
+      "description": "",
+      "contractEnforced": null,
+      "rawCode": null,
+      "compiledCode": null,
+      "refs": [],
+      "tags": [],
+      "columns": {
+        "id": {
+          "columnName": "id",
+          "hasLineage": false,
+          "dataType": "INT64"
+        },
+        "listing_url": {
+          "columnName": "listing_url",
+          "hasLineage": false,
+          "dataType": "STRING"
+        },
+        "name": {
+          "columnName": "name",
+          "hasLineage": false,
+          "dataType": "STRING"
+        },
+        "room_type": {
+          "columnName": "room_type",
+          "hasLineage": false,
+          "dataType": "STRING"
+        },
+        "minimum_nights": {
+          "columnName": "minimum_nights",
+          "hasLineage": false,
+          "dataType": "INT64"
+        },
+        "host_id": {
+          "columnName": "host_id",
+          "hasLineage": false,
+          "dataType": "INT64"
+        },
+        "price": {
+          "columnName": "price",
+          "hasLineage": false,
+          "dataType": "INT64"
+        },
+        "created_at": {
+          "columnName": "created_at",
+          "hasLineage": false,
+          "dataType": "TIMESTAMP"
+        },
+        "updated_at": {
+          "columnName": "updated_at",
+          "hasLineage": false,
+          "dataType": "TIMESTAMP"
+        }
+      },
+      "relationName": "`mysampleproject-491106`.`dbt_raw`.`raw_listings`"
+    },
+    "model.Airbnb_bq_proj.src_hosts": {
+      "id": "model.Airbnb_bq_proj.src_hosts",
+      "name": "src_hosts",
+      "fullName": "model.Airbnb_bq_proj.src_hosts",
+      "nodeType": "model",
+      "materialized": "ephemeral",
+      "modelType": "unknown",
+      "database": "mysampleproject-491106",
+      "schema": "dbt_airbnb",
+      "path": "models\\src\\src_hosts.sql",
+      "description": "",
+      "contractEnforced": false,
+      "rawCode": "with raw_hosts as (\r\n    select * from {{ source('airbnb', 'hosts') }}\r\n)\r\nselect\r\n    id as host_id,\r\n    name as host_name,\r\n    is_superhost,\r\n    created_at,\r\n    updated_at\r\nfrom raw_hosts",
+      "compiledCode": "with raw_hosts as (\n    select * from `mysampleproject-491106`.`dbt_raw`.`raw_hosts`\n)\nselect\n    id as host_id,\n    name as host_name,\n    is_superhost,\n    created_at,\n    updated_at\nfrom raw_hosts",
+      "refs": [],
+      "tags": [],
+      "columns": {},
+      "relationName": null
+    },
+    "model.Airbnb_bq_proj.src_reviews": {
+      "id": "model.Airbnb_bq_proj.src_reviews",
+      "name": "src_reviews",
+      "fullName": "model.Airbnb_bq_proj.src_reviews",
+      "nodeType": "model",
+      "materialized": "ephemeral",
+      "modelType": "unknown",
+      "database": "mysampleproject-491106",
+      "schema": "dbt_airbnb",
+      "path": "models\\src\\src_reviews.sql",
+      "description": "",
+      "contractEnforced": false,
+      "rawCode": "with raw_reviews as(\r\n    select * from {{ source('airbnb', 'reviews') }}\r\n)\r\nselect\r\n    listing_id,\r\n    date as review_date,\r\n    reviewer_name,\r\n    comments as review_comments,\r\n    sentiment as review_sentiment\r\nfrom raw_reviews",
+      "compiledCode": "with raw_reviews as(\n    select * from `mysampleproject-491106`.`dbt_raw`.`raw_reviews`\n)\nselect\n    listing_id,\n    date as review_date,\n    reviewer_name,\n    comments as review_comments,\n    sentiment as review_sentiment\nfrom raw_reviews",
+      "refs": [],
+      "tags": [],
+      "columns": {},
+      "relationName": null
+    },
+    "model.Airbnb_bq_proj.src_listings": {
+      "id": "model.Airbnb_bq_proj.src_listings",
+      "name": "src_listings",
+      "fullName": "model.Airbnb_bq_proj.src_listings",
+      "nodeType": "model",
+      "materialized": "ephemeral",
+      "modelType": "unknown",
+      "database": "mysampleproject-491106",
+      "schema": "dbt_airbnb",
+      "path": "models\\src\\src_listings.sql",
+      "description": "",
+      "contractEnforced": false,
+      "rawCode": "with raw_listings as (\r\n    select * from {{ source('airbnb', 'listings') }}\r\n)\r\nselect\r\n    id as listing_id,\r\n    name as listing_name,\r\n    listing_url,\r\n    room_type,\r\n    minimum_nights,\r\n    host_id,\r\n    price,\r\n    created_at,\r\n    updated_at\r\nfrom raw_listings",
+      "compiledCode": "with raw_listings as (\n    select * from `mysampleproject-491106`.`dbt_raw`.`raw_listings`\n)\nselect\n    id as listing_id,\n    name as listing_name,\n    listing_url,\n    room_type,\n    minimum_nights,\n    host_id,\n    price,\n    created_at,\n    updated_at\nfrom raw_listings",
+      "refs": [],
+      "tags": [],
+      "columns": {},
+      "relationName": null
+    }
+  },
+  "lineage": {
+    "edges": [
+      {
+        "id": 1,
+        "source": "source.Airbnb_bq_proj.airbnb.hosts",
+        "target": "model.Airbnb_bq_proj.dim_hosts_cleansed",
+        "sourceColumn": "*",
+        "targetColumn": "host_id"
+      },
+      {
+        "id": 2,
+        "source": "source.Airbnb_bq_proj.airbnb.hosts",
+        "target": "model.Airbnb_bq_proj.dim_hosts_cleansed",
+        "sourceColumn": "*",
+        "targetColumn": "host_name"
+      },
+      {
+        "id": 3,
+        "source": "source.Airbnb_bq_proj.airbnb.hosts",
+        "target": "model.Airbnb_bq_proj.dim_hosts_cleansed",
+        "sourceColumn": "*",
+        "targetColumn": "is_superhost"
+      },
+      {
+        "id": 4,
+        "source": "source.Airbnb_bq_proj.airbnb.hosts",
+        "target": "model.Airbnb_bq_proj.dim_hosts_cleansed",
+        "sourceColumn": "*",
+        "targetColumn": "created_at"
+      },
+      {
+        "id": 5,
+        "source": "source.Airbnb_bq_proj.airbnb.hosts",
+        "target": "model.Airbnb_bq_proj.dim_hosts_cleansed",
+        "sourceColumn": "*",
+        "targetColumn": "updated_at"
+      },
+      {
+        "id": 6,
+        "source": "model.Airbnb_bq_proj.dim_listings_cleansed",
+        "target": "model.Airbnb_bq_proj.dim_listings_w_hosts",
+        "sourceColumn": "listing_id",
+        "targetColumn": "listing_id"
+      },
+      {
+        "id": 7,
+        "source": "model.Airbnb_bq_proj.dim_listings_cleansed",
+        "target": "model.Airbnb_bq_proj.dim_listings_w_hosts",
+        "sourceColumn": "listing_name",
+        "targetColumn": "listing_name"
+      },
+      {
+        "id": 8,
+        "source": "model.Airbnb_bq_proj.dim_listings_cleansed",
+        "target": "model.Airbnb_bq_proj.dim_listings_w_hosts",
+        "sourceColumn": "room_type",
+        "targetColumn": "room_type"
+      },
+      {
+        "id": 9,
+        "source": "model.Airbnb_bq_proj.dim_listings_cleansed",
+        "target": "model.Airbnb_bq_proj.dim_listings_w_hosts",
+        "sourceColumn": "minimum_nights",
+        "targetColumn": "minimum_nights"
+      },
+      {
+        "id": 10,
+        "source": "model.Airbnb_bq_proj.dim_listings_cleansed",
+        "target": "model.Airbnb_bq_proj.dim_listings_w_hosts",
+        "sourceColumn": "price",
+        "targetColumn": "price"
+      },
+      {
+        "id": 11,
+        "source": "model.Airbnb_bq_proj.dim_listings_cleansed",
+        "target": "model.Airbnb_bq_proj.dim_listings_w_hosts",
+        "sourceColumn": "host_id",
+        "targetColumn": "host_id"
+      },
+      {
+        "id": 12,
+        "source": "model.Airbnb_bq_proj.dim_hosts_cleansed",
+        "target": "model.Airbnb_bq_proj.dim_listings_w_hosts",
+        "sourceColumn": "host_name",
+        "targetColumn": "host_name"
+      },
+      {
+        "id": 13,
+        "source": "model.Airbnb_bq_proj.dim_hosts_cleansed",
+        "target": "model.Airbnb_bq_proj.dim_listings_w_hosts",
+        "sourceColumn": "is_superhost",
+        "targetColumn": "host_is_superhost"
+      },
+      {
+        "id": 14,
+        "source": "model.Airbnb_bq_proj.dim_listings_cleansed",
+        "target": "model.Airbnb_bq_proj.dim_listings_w_hosts",
+        "sourceColumn": "created_at",
+        "targetColumn": "created_at"
+      },
+      {
+        "id": 15,
+        "source": "model.Airbnb_bq_proj.dim_hosts_cleansed",
+        "target": "model.Airbnb_bq_proj.dim_listings_w_hosts",
+        "sourceColumn": "updated_at",
+        "targetColumn": "updated_at"
+      },
+      {
+        "id": 16,
+        "source": "model.Airbnb_bq_proj.dim_listings_cleansed",
+        "target": "model.Airbnb_bq_proj.dim_listings_w_hosts",
+        "sourceColumn": "updated_at",
+        "targetColumn": "updated_at"
+      },
+      {
+        "id": 17,
+        "source": "model.Airbnb_bq_proj.dim_listings_cleansed",
+        "target": "model.Airbnb_bq_proj.dim_listings_w_hosts",
+        "sourceColumn": "host_id",
+        "targetColumn": "",
+        "edgeType": "join"
+      },
+      {
+        "id": 18,
+        "source": "model.Airbnb_bq_proj.dim_hosts_cleansed",
+        "target": "model.Airbnb_bq_proj.dim_listings_w_hosts",
+        "sourceColumn": "host_id",
+        "targetColumn": "",
+        "edgeType": "join"
+      },
+      {
+        "id": 19,
+        "source": "source.Airbnb_bq_proj.airbnb.reviews",
+        "target": "model.Airbnb_bq_proj.fct_reviews",
+        "sourceColumn": "*",
+        "targetColumn": "review_id"
+      },
+      {
+        "id": 20,
+        "source": "source.Airbnb_bq_proj.airbnb.reviews",
+        "target": "model.Airbnb_bq_proj.fct_reviews",
+        "sourceColumn": "*",
+        "targetColumn": "review_id"
+      },
+      {
+        "id": 21,
+        "source": "source.Airbnb_bq_proj.airbnb.reviews",
+        "target": "model.Airbnb_bq_proj.fct_reviews",
+        "sourceColumn": "*",
+        "targetColumn": "review_id"
+      },
+      {
+        "id": 22,
+        "source": "source.Airbnb_bq_proj.airbnb.reviews",
+        "target": "model.Airbnb_bq_proj.fct_reviews",
+        "sourceColumn": "*",
+        "targetColumn": "review_id"
+      },
+      {
+        "id": 23,
+        "source": "source.Airbnb_bq_proj.airbnb.reviews",
+        "target": "model.Airbnb_bq_proj.fct_reviews",
+        "sourceColumn": "*",
+        "targetColumn": "listing_id"
+      },
+      {
+        "id": 24,
+        "source": "source.Airbnb_bq_proj.airbnb.reviews",
+        "target": "model.Airbnb_bq_proj.fct_reviews",
+        "sourceColumn": "*",
+        "targetColumn": "review_date"
+      },
+      {
+        "id": 25,
+        "source": "source.Airbnb_bq_proj.airbnb.reviews",
+        "target": "model.Airbnb_bq_proj.fct_reviews",
+        "sourceColumn": "*",
+        "targetColumn": "reviewer_name"
+      },
+      {
+        "id": 26,
+        "source": "source.Airbnb_bq_proj.airbnb.reviews",
+        "target": "model.Airbnb_bq_proj.fct_reviews",
+        "sourceColumn": "*",
+        "targetColumn": "review_comments"
+      },
+      {
+        "id": 27,
+        "source": "source.Airbnb_bq_proj.airbnb.reviews",
+        "target": "model.Airbnb_bq_proj.fct_reviews",
+        "sourceColumn": "*",
+        "targetColumn": "review_sentiment"
+      },
+      {
+        "id": 28,
+        "source": "source.Airbnb_bq_proj.airbnb.reviews",
+        "target": "model.Airbnb_bq_proj.fct_reviews",
+        "sourceColumn": "*",
+        "targetColumn": "",
+        "edgeType": "filter"
+      },
+      {
+        "id": 29,
+        "source": "model.Airbnb_bq_proj.fct_reviews",
+        "target": "model.Airbnb_bq_proj.mart_fullmoon_reviews",
+        "sourceColumn": "listing_id",
+        "targetColumn": "listing_id"
+      },
+      {
+        "id": 30,
+        "source": "model.Airbnb_bq_proj.fct_reviews",
+        "target": "model.Airbnb_bq_proj.mart_fullmoon_reviews",
+        "sourceColumn": "review_date",
+        "targetColumn": "review_date"
+      },
+      {
+        "id": 31,
+        "source": "model.Airbnb_bq_proj.fct_reviews",
+        "target": "model.Airbnb_bq_proj.mart_fullmoon_reviews",
+        "sourceColumn": "reviewer_name",
+        "targetColumn": "reviewer_name"
+      },
+      {
+        "id": 32,
+        "source": "model.Airbnb_bq_proj.fct_reviews",
+        "target": "model.Airbnb_bq_proj.mart_fullmoon_reviews",
+        "sourceColumn": "review_comments",
+        "targetColumn": "review_comments"
+      },
+      {
+        "id": 33,
+        "source": "model.Airbnb_bq_proj.fct_reviews",
+        "target": "model.Airbnb_bq_proj.mart_fullmoon_reviews",
+        "sourceColumn": "review_sentiment",
+        "targetColumn": "review_sentiment"
+      },
+      {
+        "id": 34,
+        "source": "seed.Airbnb_bq_proj.seed_full_moon_dates",
+        "target": "model.Airbnb_bq_proj.mart_fullmoon_reviews",
+        "sourceColumn": "full_moon_date",
+        "targetColumn": "is_full_moon"
+      },
+      {
+        "id": 35,
+        "source": "model.Airbnb_bq_proj.fct_reviews",
+        "target": "model.Airbnb_bq_proj.mart_fullmoon_reviews",
+        "sourceColumn": "review_date",
+        "targetColumn": "",
+        "edgeType": "join"
+      },
+      {
+        "id": 36,
+        "source": "seed.Airbnb_bq_proj.seed_full_moon_dates",
+        "target": "model.Airbnb_bq_proj.mart_fullmoon_reviews",
+        "sourceColumn": "full_moon_date",
+        "targetColumn": "",
+        "edgeType": "join"
+      },
+      {
+        "id": 37,
+        "source": "source.Airbnb_bq_proj.airbnb.hosts",
+        "target": "snapshot.Airbnb_bq_proj.scd_raw_hosts",
+        "sourceColumn": "id",
+        "targetColumn": "id"
+      },
+      {
+        "id": 38,
+        "source": "source.Airbnb_bq_proj.airbnb.hosts",
+        "target": "snapshot.Airbnb_bq_proj.scd_raw_hosts",
+        "sourceColumn": "name",
+        "targetColumn": "name"
+      },
+      {
+        "id": 39,
+        "source": "source.Airbnb_bq_proj.airbnb.hosts",
+        "target": "snapshot.Airbnb_bq_proj.scd_raw_hosts",
+        "sourceColumn": "is_superhost",
+        "targetColumn": "is_superhost"
+      },
+      {
+        "id": 40,
+        "source": "source.Airbnb_bq_proj.airbnb.hosts",
+        "target": "snapshot.Airbnb_bq_proj.scd_raw_hosts",
+        "sourceColumn": "created_at",
+        "targetColumn": "created_at"
+      },
+      {
+        "id": 41,
+        "source": "source.Airbnb_bq_proj.airbnb.hosts",
+        "target": "snapshot.Airbnb_bq_proj.scd_raw_hosts",
+        "sourceColumn": "updated_at",
+        "targetColumn": "updated_at"
+      },
+      {
+        "id": 42,
+        "source": "source.Airbnb_bq_proj.airbnb.listings",
+        "target": "model.Airbnb_bq_proj.dim_listings_cleansed",
+        "sourceColumn": "*",
+        "targetColumn": "listing_id"
+      },
+      {
+        "id": 43,
+        "source": "source.Airbnb_bq_proj.airbnb.listings",
+        "target": "model.Airbnb_bq_proj.dim_listings_cleansed",
+        "sourceColumn": "*",
+        "targetColumn": "listing_name"
+      },
+      {
+        "id": 44,
+        "source": "source.Airbnb_bq_proj.airbnb.listings",
+        "target": "model.Airbnb_bq_proj.dim_listings_cleansed",
+        "sourceColumn": "*",
+        "targetColumn": "room_type"
+      },
+      {
+        "id": 45,
+        "source": "source.Airbnb_bq_proj.airbnb.listings",
+        "target": "model.Airbnb_bq_proj.dim_listings_cleansed",
+        "sourceColumn": "*",
+        "targetColumn": "minimum_nights"
+      },
+      {
+        "id": 46,
+        "source": "source.Airbnb_bq_proj.airbnb.listings",
+        "target": "model.Airbnb_bq_proj.dim_listings_cleansed",
+        "sourceColumn": "*",
+        "targetColumn": "host_id"
+      },
+      {
+        "id": 47,
+        "source": "source.Airbnb_bq_proj.airbnb.listings",
+        "target": "model.Airbnb_bq_proj.dim_listings_cleansed",
+        "sourceColumn": "*",
+        "targetColumn": "price"
+      },
+      {
+        "id": 48,
+        "source": "source.Airbnb_bq_proj.airbnb.listings",
+        "target": "model.Airbnb_bq_proj.dim_listings_cleansed",
+        "sourceColumn": "*",
+        "targetColumn": "created_at"
+      },
+      {
+        "id": 49,
+        "source": "source.Airbnb_bq_proj.airbnb.listings",
+        "target": "model.Airbnb_bq_proj.dim_listings_cleansed",
+        "sourceColumn": "*",
+        "targetColumn": "updated_at"
+      },
+      {
+        "id": 50,
+        "source": "model.Airbnb_bq_proj.src_hosts",
+        "target": "model.Airbnb_bq_proj.dim_hosts_cleansed",
+        "sourceColumn": "",
+        "targetColumn": ""
+      },
+      {
+        "id": 51,
+        "source": "model.Airbnb_bq_proj.dim_listings_cleansed",
+        "target": "model.Airbnb_bq_proj.dim_listings_w_hosts",
+        "sourceColumn": "",
+        "targetColumn": ""
+      },
+      {
+        "id": 52,
+        "source": "model.Airbnb_bq_proj.dim_hosts_cleansed",
+        "target": "model.Airbnb_bq_proj.dim_listings_w_hosts",
+        "sourceColumn": "",
+        "targetColumn": ""
+      },
+      {
+        "id": 53,
+        "source": "model.Airbnb_bq_proj.src_reviews",
+        "target": "model.Airbnb_bq_proj.fct_reviews",
+        "sourceColumn": "",
+        "targetColumn": ""
+      },
+      {
+        "id": 54,
+        "source": "model.Airbnb_bq_proj.fct_reviews",
+        "target": "model.Airbnb_bq_proj.mart_fullmoon_reviews",
+        "sourceColumn": "",
+        "targetColumn": ""
+      },
+      {
+        "id": 55,
+        "source": "seed.Airbnb_bq_proj.seed_full_moon_dates",
+        "target": "model.Airbnb_bq_proj.mart_fullmoon_reviews",
+        "sourceColumn": "",
+        "targetColumn": ""
+      },
+      {
+        "id": 56,
+        "source": "source.Airbnb_bq_proj.airbnb.hosts",
+        "target": "model.Airbnb_bq_proj.src_hosts",
+        "sourceColumn": "",
+        "targetColumn": ""
+      },
+      {
+        "id": 57,
+        "source": "source.Airbnb_bq_proj.airbnb.listings",
+        "target": "model.Airbnb_bq_proj.src_listings",
+        "sourceColumn": "",
+        "targetColumn": ""
+      },
+      {
+        "id": 58,
+        "source": "source.Airbnb_bq_proj.airbnb.reviews",
+        "target": "model.Airbnb_bq_proj.src_reviews",
+        "sourceColumn": "",
+        "targetColumn": ""
+      },
+      {
+        "id": 59,
+        "source": "source.Airbnb_bq_proj.airbnb.hosts",
+        "target": "snapshot.Airbnb_bq_proj.scd_raw_hosts",
+        "sourceColumn": "",
+        "targetColumn": ""
+      },
+      {
+        "id": 60,
+        "source": "model.Airbnb_bq_proj.src_listings",
+        "target": "model.Airbnb_bq_proj.dim_listings_cleansed",
+        "sourceColumn": "",
+        "targetColumn": ""
+      }
+    ],
+    "parents": {
+      "model.Airbnb_bq_proj.dim_hosts_cleansed": {
+        "host_id": [
+          {
+            "column": "*",
+            "dbt_node": "source.Airbnb_bq_proj.airbnb.hosts",
+            "lineage_type": "transformation"
+          }
+        ],
+        "host_name": [
+          {
+            "column": "*",
+            "dbt_node": "source.Airbnb_bq_proj.airbnb.hosts",
+            "lineage_type": "transformation"
+          }
+        ],
+        "is_superhost": [
+          {
+            "column": "*",
+            "dbt_node": "source.Airbnb_bq_proj.airbnb.hosts",
+            "lineage_type": "transformation"
+          }
+        ],
+        "created_at": [
+          {
+            "column": "*",
+            "dbt_node": "source.Airbnb_bq_proj.airbnb.hosts",
+            "lineage_type": "transformation"
+          }
+        ],
+        "updated_at": [
+          {
+            "column": "*",
+            "dbt_node": "source.Airbnb_bq_proj.airbnb.hosts",
+            "lineage_type": "transformation"
+          }
+        ]
+      },
+      "model.Airbnb_bq_proj.dim_listings_w_hosts": {
+        "listing_id": [
+          {
+            "column": "listing_id",
+            "dbt_node": "model.Airbnb_bq_proj.dim_listings_cleansed",
+            "lineage_type": "pass-through"
+          }
+        ],
+        "listing_name": [
+          {
+            "column": "listing_name",
+            "dbt_node": "model.Airbnb_bq_proj.dim_listings_cleansed",
+            "lineage_type": "pass-through"
+          }
+        ],
+        "room_type": [
+          {
+            "column": "room_type",
+            "dbt_node": "model.Airbnb_bq_proj.dim_listings_cleansed",
+            "lineage_type": "pass-through"
+          }
+        ],
+        "minimum_nights": [
+          {
+            "column": "minimum_nights",
+            "dbt_node": "model.Airbnb_bq_proj.dim_listings_cleansed",
+            "lineage_type": "pass-through"
+          }
+        ],
+        "price": [
+          {
+            "column": "price",
+            "dbt_node": "model.Airbnb_bq_proj.dim_listings_cleansed",
+            "lineage_type": "pass-through"
+          }
+        ],
+        "host_id": [
+          {
+            "column": "host_id",
+            "dbt_node": "model.Airbnb_bq_proj.dim_listings_cleansed",
+            "lineage_type": "pass-through"
+          }
+        ],
+        "host_name": [
+          {
+            "column": "host_name",
+            "dbt_node": "model.Airbnb_bq_proj.dim_hosts_cleansed",
+            "lineage_type": "pass-through"
+          }
+        ],
+        "host_is_superhost": [
+          {
+            "column": "is_superhost",
+            "dbt_node": "model.Airbnb_bq_proj.dim_hosts_cleansed",
+            "lineage_type": "rename"
+          }
+        ],
+        "created_at": [
+          {
+            "column": "created_at",
+            "dbt_node": "model.Airbnb_bq_proj.dim_listings_cleansed",
+            "lineage_type": "pass-through"
+          }
+        ],
+        "updated_at": [
+          {
+            "column": "updated_at",
+            "dbt_node": "model.Airbnb_bq_proj.dim_hosts_cleansed",
+            "lineage_type": "transformation"
+          },
+          {
+            "column": "updated_at",
+            "dbt_node": "model.Airbnb_bq_proj.dim_listings_cleansed",
+            "lineage_type": "transformation"
+          }
+        ],
+        "__colibri_join__": [
+          {
+            "column": "host_id",
+            "dbt_node": "model.Airbnb_bq_proj.dim_listings_cleansed",
+            "lineage_type": "join"
+          },
+          {
+            "column": "host_id",
+            "dbt_node": "model.Airbnb_bq_proj.dim_hosts_cleansed",
+            "lineage_type": "join"
+          }
+        ]
+      },
+      "model.Airbnb_bq_proj.fct_reviews": {
+        "review_id": [
+          {
+            "column": "*",
+            "dbt_node": "source.Airbnb_bq_proj.airbnb.reviews",
+            "lineage_type": "transformation"
+          },
+          {
+            "column": "*",
+            "dbt_node": "source.Airbnb_bq_proj.airbnb.reviews",
+            "lineage_type": "transformation"
+          },
+          {
+            "column": "*",
+            "dbt_node": "source.Airbnb_bq_proj.airbnb.reviews",
+            "lineage_type": "transformation"
+          },
+          {
+            "column": "*",
+            "dbt_node": "source.Airbnb_bq_proj.airbnb.reviews",
+            "lineage_type": "transformation"
+          }
+        ],
+        "listing_id": [
+          {
+            "column": "*",
+            "dbt_node": "source.Airbnb_bq_proj.airbnb.reviews",
+            "lineage_type": "transformation"
+          }
+        ],
+        "review_date": [
+          {
+            "column": "*",
+            "dbt_node": "source.Airbnb_bq_proj.airbnb.reviews",
+            "lineage_type": "transformation"
+          }
+        ],
+        "reviewer_name": [
+          {
+            "column": "*",
+            "dbt_node": "source.Airbnb_bq_proj.airbnb.reviews",
+            "lineage_type": "transformation"
+          }
+        ],
+        "review_comments": [
+          {
+            "column": "*",
+            "dbt_node": "source.Airbnb_bq_proj.airbnb.reviews",
+            "lineage_type": "transformation"
+          }
+        ],
+        "review_sentiment": [
+          {
+            "column": "*",
+            "dbt_node": "source.Airbnb_bq_proj.airbnb.reviews",
+            "lineage_type": "transformation"
+          }
+        ],
+        "__colibri_filter__": [
+          {
+            "column": "*",
+            "dbt_node": "source.Airbnb_bq_proj.airbnb.reviews",
+            "lineage_type": "filter"
+          }
+        ]
+      },
+      "model.Airbnb_bq_proj.mart_fullmoon_reviews": {
+        "listing_id": [
+          {
+            "column": "listing_id",
+            "dbt_node": "model.Airbnb_bq_proj.fct_reviews",
+            "lineage_type": "pass-through"
+          }
+        ],
+        "review_date": [
+          {
+            "column": "review_date",
+            "dbt_node": "model.Airbnb_bq_proj.fct_reviews",
+            "lineage_type": "pass-through"
+          }
+        ],
+        "reviewer_name": [
+          {
+            "column": "reviewer_name",
+            "dbt_node": "model.Airbnb_bq_proj.fct_reviews",
+            "lineage_type": "pass-through"
+          }
+        ],
+        "review_comments": [
+          {
+            "column": "review_comments",
+            "dbt_node": "model.Airbnb_bq_proj.fct_reviews",
+            "lineage_type": "pass-through"
+          }
+        ],
+        "review_sentiment": [
+          {
+            "column": "review_sentiment",
+            "dbt_node": "model.Airbnb_bq_proj.fct_reviews",
+            "lineage_type": "pass-through"
+          }
+        ],
+        "is_full_moon": [
+          {
+            "column": "full_moon_date",
+            "dbt_node": "seed.Airbnb_bq_proj.seed_full_moon_dates",
+            "lineage_type": "transformation"
+          }
+        ],
+        "__colibri_join__": [
+          {
+            "column": "review_date",
+            "dbt_node": "model.Airbnb_bq_proj.fct_reviews",
+            "lineage_type": "join"
+          },
+          {
+            "column": "full_moon_date",
+            "dbt_node": "seed.Airbnb_bq_proj.seed_full_moon_dates",
+            "lineage_type": "join"
+          }
+        ]
+      },
+      "snapshot.Airbnb_bq_proj.scd_raw_hosts": {
+        "id": [
+          {
+            "column": "id",
+            "dbt_node": "source.Airbnb_bq_proj.airbnb.hosts",
+            "lineage_type": "pass-through"
+          }
+        ],
+        "name": [
+          {
+            "column": "name",
+            "dbt_node": "source.Airbnb_bq_proj.airbnb.hosts",
+            "lineage_type": "pass-through"
+          }
+        ],
+        "is_superhost": [
+          {
+            "column": "is_superhost",
+            "dbt_node": "source.Airbnb_bq_proj.airbnb.hosts",
+            "lineage_type": "pass-through"
+          }
+        ],
+        "created_at": [
+          {
+            "column": "created_at",
+            "dbt_node": "source.Airbnb_bq_proj.airbnb.hosts",
+            "lineage_type": "pass-through"
+          }
+        ],
+        "updated_at": [
+          {
+            "column": "updated_at",
+            "dbt_node": "source.Airbnb_bq_proj.airbnb.hosts",
+            "lineage_type": "pass-through"
+          }
+        ],
+        "dbt_scd_id": [],
+        "dbt_updated_at": [],
+        "dbt_valid_from": [],
+        "dbt_valid_to": []
+      },
+      "model.Airbnb_bq_proj.dim_listings_cleansed": {
+        "listing_id": [
+          {
+            "column": "*",
+            "dbt_node": "source.Airbnb_bq_proj.airbnb.listings",
+            "lineage_type": "transformation"
+          }
+        ],
+        "listing_name": [
+          {
+            "column": "*",
+            "dbt_node": "source.Airbnb_bq_proj.airbnb.listings",
+            "lineage_type": "transformation"
+          }
+        ],
+        "room_type": [
+          {
+            "column": "*",
+            "dbt_node": "source.Airbnb_bq_proj.airbnb.listings",
+            "lineage_type": "transformation"
+          }
+        ],
+        "minimum_nights": [
+          {
+            "column": "*",
+            "dbt_node": "source.Airbnb_bq_proj.airbnb.listings",
+            "lineage_type": "transformation"
+          }
+        ],
+        "host_id": [
+          {
+            "column": "*",
+            "dbt_node": "source.Airbnb_bq_proj.airbnb.listings",
+            "lineage_type": "transformation"
+          }
+        ],
+        "price": [
+          {
+            "column": "*",
+            "dbt_node": "source.Airbnb_bq_proj.airbnb.listings",
+            "lineage_type": "transformation"
+          }
+        ],
+        "created_at": [
+          {
+            "column": "*",
+            "dbt_node": "source.Airbnb_bq_proj.airbnb.listings",
+            "lineage_type": "transformation"
+          }
+        ],
+        "updated_at": [
+          {
+            "column": "*",
+            "dbt_node": "source.Airbnb_bq_proj.airbnb.listings",
+            "lineage_type": "transformation"
+          }
+        ]
+      }
+    },
+    "children": {
+      "source.Airbnb_bq_proj.airbnb.hosts": {
+        "*": [
+          {
+            "column": "host_id",
+            "dbt_node": "model.Airbnb_bq_proj.dim_hosts_cleansed"
+          },
+          {
+            "column": "host_name",
+            "dbt_node": "model.Airbnb_bq_proj.dim_hosts_cleansed"
+          },
+          {
+            "column": "is_superhost",
+            "dbt_node": "model.Airbnb_bq_proj.dim_hosts_cleansed"
+          },
+          {
+            "column": "created_at",
+            "dbt_node": "model.Airbnb_bq_proj.dim_hosts_cleansed"
+          },
+          {
+            "column": "updated_at",
+            "dbt_node": "model.Airbnb_bq_proj.dim_hosts_cleansed"
+          }
+        ],
+        "id": [
+          {
+            "column": "id",
+            "dbt_node": "snapshot.Airbnb_bq_proj.scd_raw_hosts"
+          }
+        ],
+        "name": [
+          {
+            "column": "name",
+            "dbt_node": "snapshot.Airbnb_bq_proj.scd_raw_hosts"
+          }
+        ],
+        "is_superhost": [
+          {
+            "column": "is_superhost",
+            "dbt_node": "snapshot.Airbnb_bq_proj.scd_raw_hosts"
+          }
+        ],
+        "created_at": [
+          {
+            "column": "created_at",
+            "dbt_node": "snapshot.Airbnb_bq_proj.scd_raw_hosts"
+          }
+        ],
+        "updated_at": [
+          {
+            "column": "updated_at",
+            "dbt_node": "snapshot.Airbnb_bq_proj.scd_raw_hosts"
+          }
+        ]
+      },
+      "model.Airbnb_bq_proj.dim_listings_cleansed": {
+        "listing_id": [
+          {
+            "column": "listing_id",
+            "dbt_node": "model.Airbnb_bq_proj.dim_listings_w_hosts"
+          }
+        ],
+        "listing_name": [
+          {
+            "column": "listing_name",
+            "dbt_node": "model.Airbnb_bq_proj.dim_listings_w_hosts"
+          }
+        ],
+        "room_type": [
+          {
+            "column": "room_type",
+            "dbt_node": "model.Airbnb_bq_proj.dim_listings_w_hosts"
+          }
+        ],
+        "minimum_nights": [
+          {
+            "column": "minimum_nights",
+            "dbt_node": "model.Airbnb_bq_proj.dim_listings_w_hosts"
+          }
+        ],
+        "price": [
+          {
+            "column": "price",
+            "dbt_node": "model.Airbnb_bq_proj.dim_listings_w_hosts"
+          }
+        ],
+        "host_id": [
+          {
+            "column": "host_id",
+            "dbt_node": "model.Airbnb_bq_proj.dim_listings_w_hosts"
+          },
+          {
+            "column": "__colibri_join__",
+            "dbt_node": "model.Airbnb_bq_proj.dim_listings_w_hosts"
+          }
+        ],
+        "created_at": [
+          {
+            "column": "created_at",
+            "dbt_node": "model.Airbnb_bq_proj.dim_listings_w_hosts"
+          }
+        ],
+        "updated_at": [
+          {
+            "column": "updated_at",
+            "dbt_node": "model.Airbnb_bq_proj.dim_listings_w_hosts"
+          }
+        ]
+      },
+      "model.Airbnb_bq_proj.dim_hosts_cleansed": {
+        "host_name": [
+          {
+            "column": "host_name",
+            "dbt_node": "model.Airbnb_bq_proj.dim_listings_w_hosts"
+          }
+        ],
+        "is_superhost": [
+          {
+            "column": "host_is_superhost",
+            "dbt_node": "model.Airbnb_bq_proj.dim_listings_w_hosts"
+          }
+        ],
+        "updated_at": [
+          {
+            "column": "updated_at",
+            "dbt_node": "model.Airbnb_bq_proj.dim_listings_w_hosts"
+          }
+        ],
+        "host_id": [
+          {
+            "column": "__colibri_join__",
+            "dbt_node": "model.Airbnb_bq_proj.dim_listings_w_hosts"
+          }
+        ]
+      },
+      "source.Airbnb_bq_proj.airbnb.reviews": {
+        "*": [
+          {
+            "column": "review_id",
+            "dbt_node": "model.Airbnb_bq_proj.fct_reviews"
+          },
+          {
+            "column": "review_id",
+            "dbt_node": "model.Airbnb_bq_proj.fct_reviews"
+          },
+          {
+            "column": "review_id",
+            "dbt_node": "model.Airbnb_bq_proj.fct_reviews"
+          },
+          {
+            "column": "review_id",
+            "dbt_node": "model.Airbnb_bq_proj.fct_reviews"
+          },
+          {
+            "column": "listing_id",
+            "dbt_node": "model.Airbnb_bq_proj.fct_reviews"
+          },
+          {
+            "column": "review_date",
+            "dbt_node": "model.Airbnb_bq_proj.fct_reviews"
+          },
+          {
+            "column": "reviewer_name",
+            "dbt_node": "model.Airbnb_bq_proj.fct_reviews"
+          },
+          {
+            "column": "review_comments",
+            "dbt_node": "model.Airbnb_bq_proj.fct_reviews"
+          },
+          {
+            "column": "review_sentiment",
+            "dbt_node": "model.Airbnb_bq_proj.fct_reviews"
+          },
+          {
+            "column": "__colibri_filter__",
+            "dbt_node": "model.Airbnb_bq_proj.fct_reviews"
+          }
+        ]
+      },
+      "model.Airbnb_bq_proj.fct_reviews": {
+        "listing_id": [
+          {
+            "column": "listing_id",
+            "dbt_node": "model.Airbnb_bq_proj.mart_fullmoon_reviews"
+          }
+        ],
+        "review_date": [
+          {
+            "column": "review_date",
+            "dbt_node": "model.Airbnb_bq_proj.mart_fullmoon_reviews"
+          },
+          {
+            "column": "__colibri_join__",
+            "dbt_node": "model.Airbnb_bq_proj.mart_fullmoon_reviews"
+          }
+        ],
+        "reviewer_name": [
+          {
+            "column": "reviewer_name",
+            "dbt_node": "model.Airbnb_bq_proj.mart_fullmoon_reviews"
+          }
+        ],
+        "review_comments": [
+          {
+            "column": "review_comments",
+            "dbt_node": "model.Airbnb_bq_proj.mart_fullmoon_reviews"
+          }
+        ],
+        "review_sentiment": [
+          {
+            "column": "review_sentiment",
+            "dbt_node": "model.Airbnb_bq_proj.mart_fullmoon_reviews"
+          }
+        ]
+      },
+      "seed.Airbnb_bq_proj.seed_full_moon_dates": {
+        "full_moon_date": [
+          {
+            "column": "is_full_moon",
+            "dbt_node": "model.Airbnb_bq_proj.mart_fullmoon_reviews"
+          },
+          {
+            "column": "__colibri_join__",
+            "dbt_node": "model.Airbnb_bq_proj.mart_fullmoon_reviews"
+          }
+        ]
+      },
+      "source.Airbnb_bq_proj.airbnb.listings": {
+        "*": [
+          {
+            "column": "listing_id",
+            "dbt_node": "model.Airbnb_bq_proj.dim_listings_cleansed"
+          },
+          {
+            "column": "listing_name",
+            "dbt_node": "model.Airbnb_bq_proj.dim_listings_cleansed"
+          },
+          {
+            "column": "room_type",
+            "dbt_node": "model.Airbnb_bq_proj.dim_listings_cleansed"
+          },
+          {
+            "column": "minimum_nights",
+            "dbt_node": "model.Airbnb_bq_proj.dim_listings_cleansed"
+          },
+          {
+            "column": "host_id",
+            "dbt_node": "model.Airbnb_bq_proj.dim_listings_cleansed"
+          },
+          {
+            "column": "price",
+            "dbt_node": "model.Airbnb_bq_proj.dim_listings_cleansed"
+          },
+          {
+            "column": "created_at",
+            "dbt_node": "model.Airbnb_bq_proj.dim_listings_cleansed"
+          },
+          {
+            "column": "updated_at",
+            "dbt_node": "model.Airbnb_bq_proj.dim_listings_cleansed"
+          }
+        ]
+      }
+    }
+  },
+  "tree": {
+    "byDatabase": {
+      "mysampleproject-491106": {
+        "dbt_airbnb": [
+          "model.Airbnb_bq_proj.dim_hosts_cleansed",
+          "model.Airbnb_bq_proj.dim_listings_cleansed",
+          "model.Airbnb_bq_proj.dim_listings_w_hosts",
+          "model.Airbnb_bq_proj.fct_reviews",
+          "model.Airbnb_bq_proj.mart_fullmoon_reviews",
+          "snapshot.Airbnb_bq_proj.scd_raw_hosts",
+          "seed.Airbnb_bq_proj.seed_full_moon_dates",
+          "model.Airbnb_bq_proj.src_hosts",
+          "model.Airbnb_bq_proj.src_listings",
+          "model.Airbnb_bq_proj.src_reviews"
+        ],
+        "dbt_raw": [
+          "source.Airbnb_bq_proj.airbnb.hosts",
+          "source.Airbnb_bq_proj.airbnb.listings",
+          "source.Airbnb_bq_proj.airbnb.reviews"
+        ]
+      }
+    },
+    "byPath": {
+      "Airbnb_bq_proj": {
+        "models": {
+          "dim": {
+            "__items__": [
+              "model.Airbnb_bq_proj.dim_hosts_cleansed",
+              "model.Airbnb_bq_proj.dim_listings_cleansed",
+              "model.Airbnb_bq_proj.dim_listings_w_hosts"
+            ]
+          },
+          "fct": {
+            "__items__": [
+              "model.Airbnb_bq_proj.fct_reviews"
+            ]
+          },
+          "mart": {
+            "__items__": [
+              "model.Airbnb_bq_proj.mart_fullmoon_reviews"
+            ]
+          },
+          "src": {
+            "__items__": [
+              "model.Airbnb_bq_proj.src_hosts",
+              "model.Airbnb_bq_proj.src_listings",
+              "model.Airbnb_bq_proj.src_reviews"
+            ]
+          }
+        },
+        "sources": {
+          "dbt_raw": {
+            "__items__": [
+              "source.Airbnb_bq_proj.airbnb.hosts",
+              "source.Airbnb_bq_proj.airbnb.listings",
+              "source.Airbnb_bq_proj.airbnb.reviews"
+            ]
+          }
+        },
+        "seeds": {
+          "__items__": [
+            "seed.Airbnb_bq_proj.seed_full_moon_dates"
+          ]
+        },
+        "snapshots": {
+          "__items__": [
+            "snapshot.Airbnb_bq_proj.scd_raw_hosts"
+          ]
+        }
+      }
+    }
+  }
+}
