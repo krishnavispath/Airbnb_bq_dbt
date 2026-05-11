@@ -30,8 +30,20 @@ clean-targets:         # directories to be removed by `dbt clean`
 # In this example config, we tell dbt to build all models in the example/
 # directory as views. These settings can be overridden in the individual model
 # files using the `{{ config(...) }}` macro.
+on-run-start:
+  - "CREATE TABLE IF NOT EXISTS {{ target.schema }}.audit_log
+     (event_time timestamp, event_name string, model_name string, status string);"
+
+on-run-end:
+  - "{{ log_audit_results(results) }}"
+
 models:
   Airbnb_bq_proj:
+    +pre-hook:
+      - "{{ pre_hook_audit() }}"
+    +post-hook: "INSERT INTO {{ target.schema }}.audit_log 
+        (event_time, event_name, model_name, status) 
+        VALUES (CURRENT_TIMESTAMP(), 'model_run', '{{ this.name }}', 'success');"
     +materialized: view
     dim:
       +materialized: table
